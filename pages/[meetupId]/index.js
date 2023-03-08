@@ -1,7 +1,8 @@
 import MeetupDetail from "@/components/meetups/MeetupDetail";
-import { MongoClient, ObjectId } from "mongodb";
 import { Fragment } from "react";
 import Head from "next/head";
+import dbConnect from "@/lib/dbConnect";
+import Meetup from "@/models/Meetup"
 
 function MeetupDetails({ meetupData }) {
   return (
@@ -14,51 +15,27 @@ function MeetupDetails({ meetupData }) {
         />
       </Head>
       <MeetupDetail
-        image={meetupData.image}
-        title={meetupData.title}
-        address={meetupData.address}
-        description={meetupData.description}
+        image={meetupData.currentMeetup.image}
+        title={meetupData.currentMeetup.title}
+        address={meetupData.currentMeetup.address}
+        description={meetupData.currentMeetup.description}
       />
     </Fragment>
   );
 }
 
-export async function getStaticPaths() {
-  const client = await MongoClient.connect('mongodb+srv://leon-forsythe:hinata11!@cluster0.znbosnr.mongodb.net/reactMeetups?retryWrites=true&w=majority');
-  const db = client.db();
-  const meetupCollection = db.collection("meetups");
+export async function getServerSideProps({params}) {
 
-  const meetups = await meetupCollection.find({}, { _id: 1 }).toArray();
-  client.close();
+  await dbConnect()
+  const meetupId = params.meetupId;
 
-  return {
-    fallback: true,
-    paths: meetups.map((meetup) => ({
-      params: { meetupId: meetup._id.toString() },
-    })),
-  };
-}
+  const currentMeetup = await Meetup.findById(meetupId).lean()
 
-export async function getStaticProps(context) {
-  const meetupId = context.params.meetupId;
-
-  const client = await MongoClient.connect('mongodb+srv://leon-forsythe:hinata11!@cluster0.znbosnr.mongodb.net/reactMeetups?retryWrites=true&w=majority');
-  const db = client.db();
-
-  const meetupCollection = db.collection("meetups");
-  const currentMeetup = await meetupCollection.findOne({
-    _id: new ObjectId(meetupId),
-  });
+  currentMeetup._id = currentMeetup._id.toString()
 
   return {
     props: {
-      meetupData: {
-        id: currentMeetup._id.toString(),
-        title: currentMeetup.title,
-        address: currentMeetup.address,
-        image: currentMeetup.image,
-        description: currentMeetup.description,
-      },
+      meetupData: { currentMeetup },
     },
   };
 }
