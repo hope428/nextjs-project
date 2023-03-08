@@ -1,4 +1,5 @@
 import {MongoClient} from 'mongodb'
+import Meetup from '../../models/Meetup'
 
 
 
