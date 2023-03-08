@@ -1,7 +1,8 @@
 import MeetupList from "@/components/meetups/MeetupList";
 import Head from "next/head";
-import { MongoClient } from "mongodb";
 import { Fragment } from "react";
+import dbConnect from "@/lib/dbConnect";
+import Meetup from "@/models/Meetup"
 
 function HomePage(props) {
   return (
@@ -10,31 +11,27 @@ function HomePage(props) {
         <title>React Meetups</title>
         <meta name="description" content="Browse a huge list of react meetups" />
       </Head>
-      <MeetupList meetups={props.meetups} />;
+      <MeetupList meetups={props.meetups.meetups} />;
     </Fragment>
   );
 }
 
-export async function getStaticProps() {
+export async function getServerSideProps() {
   //fetch data from an api or database
 
-  const client = await MongoClient.connect(process.env.MONGODB_URI);
+  await dbConnect()
 
-  const db = client.db();
-  const meetupCollections = db.collection("meetups");
-
-  const result = await meetupCollections.find().toArray();
+  const result = await Meetup.find({})
+  const meetups = result.map((doc) => {
+    const meetup = doc.toObject()
+    meetup._id = meetup._id.toString()
+    return meetup
+  })
 
   return {
     props: {
-      meetups: result.map((meetup) => ({
-        title: meetup.title,
-        address: meetup.address,
-        image: meetup.image,
-        id: meetup._id.toString(),
-      })),
-    },
-    revalidate: 10,
+      meetups: {meetups}
+    }
   };
 }
 
