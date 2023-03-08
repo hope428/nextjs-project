@@ -11,7 +11,7 @@ function HomePage(props) {
         <title>React Meetups</title>
         <meta name="description" content="Browse a huge list of react meetups" />
       </Head>
-      <MeetupList meetups={props.meetups.meetups} />;
+      <MeetupList meetups={props.meetups.meetups} />
     </Fragment>
   );
 }
