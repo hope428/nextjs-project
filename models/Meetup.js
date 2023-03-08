@@ -7,6 +7,4 @@ const MeetupSchema = new mongoose.Schema({
     address: String
 })
 
-const Meetup = mongoose.model('Meetup', MeetupSchema)
-
-module.exports = Meetup
+module.exports = mongoose.models.Meetup || mongoose.model('Meetup', MeetupSchema)
